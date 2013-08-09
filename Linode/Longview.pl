@@ -64,7 +64,7 @@ $apikey = scalar(slurp_file($api_key_file));
 unless ($apikey){
 	print "\nNo api key found. Please enter your API Key: ";
 	chomp($apikey = <>);
-	unless ($$apikey =~ /^[0-9A-F]{8}-(?:[0-9A-F]{4}-){2}[0-9A-F]{16}\z$/){
+	unless ($apikey =~ /^[0-9A-F]{8}-(?:[0-9A-F]{4}-){2}[0-9A-F]{16}\z$/){
 		print "Invalid API Key\n";
 		exit 1;
 	}
