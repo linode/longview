@@ -34,6 +34,7 @@ use warnings;
 use Linode::Longview::Util ':BASIC';
 
 our $sockInfoCache = {};
+our $IPTranslationCache = {};
 
 sub get {
 	my (undef, $dataref) = @_;
@@ -111,12 +112,26 @@ sub get {
 sub get_socket_info {
 	my $inode = shift;
 	for my $type (qw(tcp udp tcp6 udp6)) {
-		@{$sockInfoCache->{$type}} = slurp_file($PROCFS . "net/$type") unless ($sockInfoCache->{$type});
+		unless ($sockInfoCache->{$type}) {
+			my @lines = slurp_file($PROCFS . "net/$type");
+			for my $line (@lines) {
+				# now we've got a local addr, remote addr, and inode
+				my $tmp = [(split(/\s+/, $line))[2,3,10]];
+
+				$tmp = [
+					$type,
+					(split(":", $tmp->[0])),
+					(split(":", $tmp->[1])),
+					$tmp->[2]
+				];
+				next unless $tmp->[5];
+				push @{$sockInfoCache->{$type}}, $tmp;
+			}
+		}
+
 		for my $sock (@{$sockInfoCache->{$type}}) {
-			if ( ( split /\s+/, $sock )[10] eq $inode ) {
-				my ( $sip, $sport, $rip, $rport );
-				$sock =~ m/\s+\S+\s+(.*?):(\S+)\s+(.*?):(\S+)\s+/;
-				return ( $type, $1, $2, $3, $4 );
+			if ( $sock->[5] eq $inode ) {
+				return @$sock;
 			}
 		}
 	}
@@ -124,6 +139,7 @@ sub get_socket_info {
 
 sub translate_IP {
 	my $raw_IP = shift;
+	return $IPTranslationCache->{$raw_IP} if $IPTranslationCache->{$raw_IP};
 	if ( length($raw_IP) > 8 ) {
 		my @ip;
 		push( @ip, reverse( unpack( 'a2' x 4 ) ) )
@@ -133,10 +149,12 @@ sub translate_IP {
 		$v6 =~ s/:0+/:/;
 		$v6 =~ s/^:/::/;
 		$v6 = lc $v6;
-		return $v6;
+		$IPTranslationCache->{$raw_IP} = $v6;
+		return $IPTranslationCache->{$raw_IP};
 	}
-	$raw_IP = hex $raw_IP;
-	return join( '.', reverse( unpack( 'C4', pack( 'N', $raw_IP ) ) ) );
+	my $hex_IP = hex $raw_IP;
+	$IPTranslationCache->{$raw_IP} = join( '.', reverse( unpack( 'C4', pack( 'N', $hex_IP ) ) ) );
+	return $IPTranslationCache->{$raw_IP};
 }
 
 1;
