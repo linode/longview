@@ -109,16 +109,16 @@ sub enable_debug_logging {
 	$logger->level($levels->{trace});
 }
 
-# For an arbrary sized cache ($slots long), we want to remove an element to keep the
+# For an arbitrarily sized cache ($slots long), we want to remove an element to keep the
 # average gap between any two elements as small as possible. Turns out that the right
-# seqence to remove elements is a repeating sequence of runs of 1 .. $slots - 2, with
+# sequence to remove elements is a repeating sequence of runs of 1 .. $slots - 2, with
 # ($slots -1) x ((2**runNumber) - 1) interleaved before each element of the run.
 #
 # The first push below handles the inserting ($slots -1) x ((2**runNumber) - 1), while
 # the second adds current element of the run. The loop is a while rather than a for,
-# as the legth of the list becomes MUCH longer than the iteration currently being
+# as the length of the list becomes MUCH longer than the iteration currently being
 # calculated, after just a few runs (~2), so it's easier to measure the length of
-# the seqence directly than try to approximate it from the iteration number
+# the sequence directly than try to approximate it from the iteration number
 sub remove_sequence {
 	my $iteration = shift;
 	my $current = 0;
