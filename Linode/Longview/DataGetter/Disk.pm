@@ -70,7 +70,6 @@ sub get {
 				}
 				if (exists($dev_mapper{substr($device,5)})) {
 					$dataref->{INSTANT}->{"Disk.$e_device.label"} = $dev_mapper{substr($device,5)};
-					$dataref->{INSTANT}->{"Disk.$e_device.dm"} = 1;
 				}
 			} else {
 				unless (keys(%dev_mapper)) {
@@ -83,7 +82,6 @@ sub get {
 				}
 				if (exists($dev_mapper{$major."_".$minor})) {
 					$dataref->{INSTANT}->{"Disk.$e_device.label"} = $dev_mapper{$major."_".$minor};
-					$dataref->{INSTANT}->{"Disk.$e_device.dm"} = 1;
 				}
 			}
 		} elsif ($device =~ m|(/dev/md\d+)(p\d+)?|) {
@@ -155,7 +153,8 @@ sub _get_mounted_info {
 		next unless $device && $path;
 
 		if ( $device =~ m|^/dev/mapper| ) {
-			$device = abs_path( '/dev/mapper/' . readlink($device) );
+			my $link_path = readlink($device);
+			$device = abs_path("/dev/mapper/$link_path") if $link_path;
 		}
 
 		if ($device =~ m|/dev/disk/by-uuid/[0-9a-f-]+|) {
