@@ -77,7 +77,7 @@ sub get {
 						my $rdev=(stat($_))[6];
 						my $major_m = ($rdev & 03777400) >> 0000010;
 						my $minor_m = ($rdev & 037774000377) >> 0000000;
-						join('_', $major_m,$minor_m) => $_;
+						join('_', $major_m,$minor_m) => substr($_,12);
 					} glob ("/dev/mapper/*");
 				}
 				if (exists($dev_mapper{$major."_".$minor})) {
