@@ -44,9 +44,7 @@ our @EXPORT_OK
 		 daemonize_self check_already_running enable_debug_logging post ge_UA
 		 $PROCFS $ARCH $SLEEP_TIME $TICKS $VERSION $apikey);
 
-use Log::Log4perl;
-use Log::Log4perl::Layout;
-use Log::Log4perl::Level;
+use Linode::Longview::Logger;
 
 use File::Path 'make_path';
 
@@ -103,30 +101,12 @@ sub post {
 
 sub get_logger {
 	return $logger if defined $logger;
-	make_path('/var/log/linode/');
-	$logger = Log::Log4perl->get_logger('Longview');
-	my $layout = Log::Log4perl::Layout::PatternLayout->new("%d{M/d HH:mm:ss} %p %c[%P] - %m%n");
-	my $appender = Log::Log4perl::Appender->new(
-		'Log::Dispatch::FileRotate',
-		name		=> 'logfile',
-		filename	=> '/var/log/linode/longview.log',
-		mode		=> 'append',
-		max			=> 10);
-	$appender->layout($layout);
-	$logger->add_appender($appender);
-	$logger->level($INFO);
+	$logger = Linode::Longview::Logger->new($levels->{info});
 	return $logger;
 }
 
 sub enable_debug_logging {
-	my $layout = Log::Log4perl::Layout::PatternLayout->new("%d{M/d HH:mm:ss} %p %c[%P] - %m%n");
-	my $appender = Log::Log4perl::Appender->new(
-        'Log::Log4perl::Appender::Screen',
-        mode     => 'append',
-    );
-	$appender->layout($layout);
-	$logger->add_appender($appender);
-	$logger->level($TRACE);
+	$logger->level($levels->{trace});
 }
 
 # For an arbrary sized cache ($slots long), we want to remove an element to keep the
