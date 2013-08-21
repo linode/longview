@@ -124,7 +124,7 @@ sub _prep_for_main {
 	chmod 0600, $api_key_file;
 
 	daemonize_self();
-	enable_debug_logging() if(defined $ARGV[0] && $ARGV[0] eq 'Debug');
+	enable_debug_logging() if(defined $ARGV[0] && $ARGV[0] =~ /Debug/i);
 
 	$0 = 'linode-longview';
 	$SIG{TERM} = $SIG{INT} = $SIG{HUP} = $SIG{QUIT} = sub { $quit = 1 };
