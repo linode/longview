@@ -153,8 +153,15 @@ sub _get_mounted_info {
 		next unless $device && $path;
 
 		if ( $device =~ m|^/dev/mapper| ) {
-			my $link_path = readlink($device);
-			$device = abs_path("/dev/mapper/$link_path") if $link_path;
+			my $linkpath = readlink($device);
+			if ($linkpath) {
+				$device = abs_path("/dev/mapper/$linkpath");
+			}
+			else {
+				my $rdev=(stat($device))[6];
+				my $minor_m = ($rdev & 037774000377) >> 0000000;
+				$device = "/dev/dm-$minor_m";
+			}
 		}
 
 		if ($device =~ m|/dev/disk/by-uuid/[0-9a-f-]+|) {
