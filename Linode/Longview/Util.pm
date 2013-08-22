@@ -74,9 +74,9 @@ sub get_UA {
 	return $gua if defined $gua;
 	$gua = LWP::UserAgent->new(
 		timeout => 10,
-		agent   => "Linode Longview 1.0 client: $apikey"
+		agent   => "Linode Longview 1.0 client: $apikey",
+		ssl_opts => {MultiHomed => 1, Timeout => 3}
 	);
-	$gua->ssl_opts(MultiHomed => 1, Timeout => 3);
 	return $gua;
 }
 
