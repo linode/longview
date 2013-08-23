@@ -32,10 +32,14 @@ use strict;
 use warnings;
 use Linode::Longview::Util;
 
+our $cache_touch_dt;
+
 sub get {
 	my (undef, $dataref) = @_;
 
 	$logger->trace('Entering YUM module');
+
+	return $dataref if get_DB_touch_dt() == $cache_touch_dt;
 
 	my %u_pkgs = upgradable_pkgs();
 	if (!%u_pkgs){
@@ -53,7 +57,19 @@ sub get {
 		}
 		keys %u_pkgs
 	];
+
+	$cache_touch_dt = get_DB_touch_dt();
 	return $dataref;
+}
+
+sub get_DB_touch_dt {
+	my $oldest = 0;
+	my $candidate;
+	for my $db (glob('/var/lib/rpm/__db.*')) {
+		$candidate = (stat($db))[9];
+		$oldest = $candidate if $oldest < $candidate;
+	}
+	return $oldest;
 }
 
 sub current_pkgs {

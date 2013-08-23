@@ -30,11 +30,11 @@ See the full license at L<http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
-use 5.010;
-
-use feature 'state';
 
 use Linode::Longview::Util;
+
+our $next_run;
+our $cache_touch_dt;
 
 sub get {
 	my ( undef, $dataref ) = @_;
@@ -51,6 +51,12 @@ sub get {
 		$logger->trace('Running apt-get update before reporting packages');
 		`apt-get -q update`;
 	}
+
+	my $new_touch_dt = (stat('/var/cache/apt/pkgcache.bin'))[9];
+
+	return $dataref if $new_touch_dt == $cache_touch_dt;
+	$cache_touch_dt = $new_touch_dt;
+
 	$dataref->{INSTANT}->{Packages} = [];
 
 	my $held = 1;
@@ -74,7 +80,6 @@ sub get {
 }
 
 sub should_update {
-	state $next_run;
 	return 0 if((defined $next_run) && ($next_run > time));
 	$next_run = time + 86400; #Only actually hit the mirrors once every 24 hours.
 	return 1;
