@@ -74,6 +74,8 @@ sub process_info {
 		if ( $line =~ m/^write_bytes:\s+(.*)/ ) { $proc{iowritekbytes} = $1; last; }
 	}
 
+	$proc{name} = $0 if $proc{pid} == $$;
+
 	return %proc;
 }
 
