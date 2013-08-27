@@ -30,14 +30,14 @@ See the full license at L<http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
-use 5.010;
-use feature 'state';
 
 use Linode::Longview::Util;
 
+our $next_run;
+our @pkgs;
+
 sub get {
 	my ( undef, $dataref ) = @_;
-	state @pkgs;
 
 	$logger->trace('Entering Gentoo module');
 
@@ -59,7 +59,6 @@ sub get {
 }
 
 sub should_update {
-	state $next_run;
 	return 0 if((defined $next_run) && ($next_run > time));
 	$next_run = time + 1800; # Checking updates is expensive; only do it every 30 minutes
 	return 1;

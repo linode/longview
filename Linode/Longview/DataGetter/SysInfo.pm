@@ -65,7 +65,7 @@ sub get {
 	$dataref->{INSTANT}->{'SysInfo.cpu.cores'} = grep {/^processor/} @cpu_info;
 	#<<<
 	($dataref->{INSTANT}->{'SysInfo.cpu.type'} =
-		(map { /^model name\s+:(?<model>.*)$/; $+{model} || ()} @cpu_info)[0])
+		(map { /^model name\s+:(.*)$/; $1 || ()} @cpu_info)[0])
 		=~ s/^\s+//;
 	#>>>
 	$dataref->{INSTANT}->{'SysInfo.cpu.type'} =~ s/\s{2,}/ /g;

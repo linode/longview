@@ -5,7 +5,7 @@ use warnings;
 use Exporter 'import';
 our @EXPORT = qw($levels);
 
-use File::Path 'make_path';
+use File::Path;
 use POSIX 'strftime';
 use Log::LogLite;
 
@@ -37,7 +37,7 @@ sub new {
     my ( $class, $level ) = @_;
     my $self = {};
 
-    make_path($LOGDIR) unless (-d $LOGDIR);
+    mkpath($LOGDIR) unless (-d $LOGDIR);
     $self->{logger}
         = Log::LogLite->new( $LOGDIR . 'longview.log', $level )
         or die "Couldn't create logger object: $!";

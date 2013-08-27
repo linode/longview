@@ -142,7 +142,7 @@ sub translate_IP {
 	return $IPTranslationCache->{$raw_IP} if $IPTranslationCache->{$raw_IP};
 	if ( length($raw_IP) > 8 ) {
 		my @ip;
-		push( @ip, reverse( unpack( 'a2' x 4 ) ) )
+		push( @ip, reverse( unpack( 'a2' x 4, $_ ) ) )
 			for ( unpack( 'a8' x 4, $raw_IP ) );
 		my $v6 = join( ':', unpack( 'a4' x 8, join( '', @ip ) ) );
 		$v6 =~ s/(0000:?)+/:/;

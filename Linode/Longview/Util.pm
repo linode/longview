@@ -1,5 +1,4 @@
 package Linode::Longview::Util;
-use 5.010;
 
 =head1 COPYRIGHT/LICENSE
 
@@ -46,13 +45,9 @@ our @EXPORT_OK
 
 use Linode::Longview::Logger;
 
-use File::Path 'make_path';
-
 use Carp;
 use POSIX;
 use JSON;
-
-use feature 'state';
 
 our $logger = get_logger();
 
@@ -69,6 +64,7 @@ our $apikey;
 
 my $pid_file    = '/var/run/longview.pid';
 my $slots = 10;
+my %push_iteration;
 
 sub get_UA {
 	return $gua if defined $gua;
@@ -141,14 +137,13 @@ sub remove_sequence {
 sub constant_push {
 	my ($ar,$val) = @_;
 	$logger->debug('Array Ref is undefined') unless (defined($ar));
-	state %iteration;
 	my $addr = substr $ar,6,9;
-	$iteration{$addr} = 0 if(scalar(@$ar)==0);
+	$push_iteration{$addr} = 0 if(scalar(@$ar)==0);
 	push @$ar,$val;
 	# Remove sequence expects to start at 1, while the first removal doesn't need to happen until $slots
 	# so we subtract ($slots -1) to keep the numbers lined up with what each side expects
-	splice(@$ar,remove_sequence($iteration{$addr}-($slots-1)),1) if (scalar(@$ar) > $slots);
-	$iteration{$addr}++;
+	splice(@$ar,remove_sequence($push_iteration{$addr}-($slots-1)),1) if (scalar(@$ar) > $slots);
+	$push_iteration{$addr}++;
 }
 
 sub slurp_file {
