@@ -32,10 +32,11 @@ See the full license at L<http://www.gnu.org/licenses/>.
 
 BEGIN {
 	use Config;
-	push @INC, '/opt/linode/longview';
-	push @INC, '/opt/linode/longview/lib/perl5';
-	push @INC, "/opt/linode/longview/lib/perl5/${Config{archname}}/";
-	push @INC, '/opt/linode/longview/usr/include';
+	use FindBin;
+	push @INC, "$FindBin::RealBin/../";
+	push @INC, "$FindBin::RealBin/../lib/perl5";
+	push @INC, "$FindBin::RealBin/../lib/perl5/${Config{archname}}/";
+	push @INC, "$FindBin::RealBin/..//usr/include";
 	$Net::HTTP::SOCKET_CLASS = 'IO::Socket::INET6';
 	require Net::HTTP;
 }
