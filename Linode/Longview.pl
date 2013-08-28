@@ -37,7 +37,10 @@ BEGIN {
 	push @INC, "$FindBin::RealBin/../lib/perl5";
 	push @INC, "$FindBin::RealBin/../lib/perl5/${Config{archname}}/";
 	push @INC, "$FindBin::RealBin/..//usr/include";
-	$Net::HTTP::SOCKET_CLASS = 'IO::Socket::INET6';
+	{
+		no warnings 'once';
+		$Net::HTTP::SOCKET_CLASS = 'IO::Socket::INET6';
+	}
 	require Net::HTTP;
 }
 
