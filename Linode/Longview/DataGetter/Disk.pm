@@ -202,10 +202,10 @@ sub _statfs {
 	};
 
 	# unsigned long vs unsigned quad on 32 vs 64 bit boxes
-	if ( $Config{alignbytes} eq '4' ) {
+	if ( !defined($Config{use64bitall}) ) {
 		return unpack 'L7', $fmt;
 	}
-	elsif ( $Config{alignbytes} eq '8' ) {
+	elsif ( defined($Config{use64bitall}) ) {
 		return unpack 'Q7', $fmt;
 	}
 	else {

@@ -49,12 +49,12 @@ sub get {
 
 	if(should_update()){
 		$logger->trace('Running apt-get update before reporting packages');
-		`apt-get -q update`;
+		`apt-get -q update 2>/dev/null`;
 	}
 
 	my $new_touch_dt = (stat('/var/cache/apt/pkgcache.bin'))[9];
 
-	return $dataref if $new_touch_dt == $cache_touch_dt;
+	return $dataref if (defined($cache_touch_dt) && ($new_touch_dt == $cache_touch_dt));
 	$cache_touch_dt = $new_touch_dt;
 
 	$dataref->{INSTANT}->{Packages} = [];

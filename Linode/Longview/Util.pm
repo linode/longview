@@ -54,7 +54,7 @@ our $logger = get_logger();
 our $gua;
 our $post_target   = 'https://longview.linode.com/post';
 
-our $VERSION = '0.2.7';
+our $VERSION = '1.0.0';
 our $TICKS   = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 our $PROCFS  = find_procfs()      or $logger->logdie("Couldn't find procfs: $!");
 our $ARCH    = get_architecture() or $logger->info("Couldn't determine architecture: $!");
@@ -70,7 +70,7 @@ sub get_UA {
 	return $gua if defined $gua;
 	$gua = LWP::UserAgent->new(
 		timeout => 10,
-		agent   => "Linode Longview 1.0 client: $apikey",
+		agent   => "Linode Longview $VERSION client: $apikey",
 		ssl_opts => {MultiHomed => 1, Timeout => 3}
 	);
 	return $gua;
