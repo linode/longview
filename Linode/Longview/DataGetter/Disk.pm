@@ -97,11 +97,11 @@ sub get {
 			}
 		} else {
 			# don't check out this guy if he has no writes and isn't someone we care about
-			next unless ( (exists($dataref->{LONGTERM}->{"Disk.$e_device.fs.free"})) || (grep { /$device/ } @swaps));
+			next unless ( (exists($dataref->{LONGTERM}->{"Disk.$e_device.fs.free"})) || (grep { $_ eq $device } @swaps));
 		}
 		$dataref->{LONGTERM}->{"Disk.$e_device.reads"}  = $reads + 0;
 		$dataref->{LONGTERM}->{"Disk.$e_device.writes"} = $writes + 0;
-		$dataref->{INSTANT}->{"Disk.$e_device.isswap"}  = (grep { /$device/ } @swaps) ? 1 : 0;
+		$dataref->{INSTANT}->{"Disk.$e_device.isswap"}  = (grep { $_ eq $device } @swaps) ? 1 : 0;
 		unless (exists($dataref->{INSTANT}->{"Disk.$e_device.mounted"})) {
 			$dataref->{INSTANT}->{"Disk.$e_device.mounted"} = 0;
 		}
