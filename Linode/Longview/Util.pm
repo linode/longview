@@ -40,7 +40,7 @@ our %EXPORT_TAGS = (
 );
 our @EXPORT_OK
 	= qw(slurp_file detect_system constant_push flatten_data
-		 daemonize_self check_already_running enable_debug_logging post ge_UA
+		 daemonize_self check_already_running enable_debug_logging post get_UA
 		 $PROCFS $ARCH $SLEEP_TIME $TICKS $VERSION $apikey);
 
 use Linode::Longview::Logger;
