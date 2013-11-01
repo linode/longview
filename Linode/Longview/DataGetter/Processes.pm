@@ -34,6 +34,8 @@ use warnings;
 use POSIX;
 use Linode::Longview::Util qw(:BASIC $TICKS);
 
+our $DEPENDENCIES = [];
+
 use Exporter 'import';
 our @EXPORT_OK = (qw(process_info process_list));
 

@@ -33,6 +33,8 @@ use warnings;
 
 use Linode::Longview::Util;
 
+our $DEPENDENCIES = ['Processes.pm'];
+
 our $next_run;
 our $cache_touch_dt;
 

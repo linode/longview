@@ -1,4 +1,4 @@
-package Linode::Longview::DataGetter::Packages::YUM;
+package Linode::Longview::DataGetter::Packages::Gentoo;
 
 =head1 COPYRIGHT/LICENSE
 
@@ -30,69 +30,40 @@ See the full license at L<http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
+
 use Linode::Longview::Util;
 
-our $cache_touch_dt;
+our $DEPENDENCIES = [];
+
+our $next_run;
+our @pkgs;
 
 sub get {
-	my (undef, $dataref) = @_;
+	my ( undef, $dataref ) = @_;
 
-	$logger->trace('Entering YUM module');
+	$logger->trace('Entering Gentoo module');
 
-	return $dataref if get_DB_touch_dt() == $cache_touch_dt;
-
-	my %u_pkgs = upgradable_pkgs();
-	if (!%u_pkgs){
-		$dataref->{INSTANT}->{Packages} = [];
-		return $dataref;
+	if(should_update()){
+		@pkgs = qx(VERSION='<version>,' eix -u '-*' --format '<category>/<name> <installedversions:VERSION> <bestslotupgradeversions:VERSION>\n');
 	}
-	my %c_pkgs = current_pkgs();
+
 	$dataref->{INSTANT}->{Packages} = [
 		map {
+			my ($name, $current, $new) = $_ =~ /^([^ ]+) (.+?), (.+?),$/;
 			{
-				name => $_,
-				current => $c_pkgs{$_},
-				new => $u_pkgs{$_}
+				name    => $name,
+				current => join(', ', split(/,/, $current)),
+				new     => join(', ', split(/,/, $new))
 			}
-		}
-		keys %u_pkgs
+		} @pkgs
 	];
-
-	$cache_touch_dt = get_DB_touch_dt();
 	return $dataref;
 }
 
-sub get_DB_touch_dt {
-	my $oldest = 0;
-	my $candidate;
-	for my $db (glob('/var/lib/rpm/__db.*')) {
-		$candidate = (stat($db))[9];
-		$oldest = $candidate if $oldest < $candidate;
-	}
-	return $oldest;
-}
-
-sub current_pkgs {
-	# yum wraps unless we fake a tty
-	my @pkg_list = qx(script -c 'yum --color=never list installed' /dev/null);
-	my %pkgs;
-	for my $pkg (@pkg_list) {
-		if ( $pkg =~ m/^(.*?)\s+(.*?)\s+@(.*)$/ ) {
-			$pkgs{$1} = $2;
-		}
-	}
-	return %pkgs;
-}
-
-sub upgradable_pkgs {
-	my @pkg_list = qx(yum check-update);
-	my %pkgs;
-	for my $pkg (@pkg_list) {
-		if ( $pkg =~ m/^(\S+\.\S+)\s+(\S+)\s+\S+$/ ) {
-			$pkgs{$1} = $2;
-		}
-	}
-	return %pkgs;
+sub should_update {
+	return 0 if((defined $next_run) && ($next_run > time));
+	$next_run = time + 1800; # Checking updates is expensive; only do it every 30 minutes
+	return 1;
 }
 
 1;

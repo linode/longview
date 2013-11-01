@@ -37,6 +37,8 @@ use POSIX 'uname';
 use Cwd 'abs_path';
 use Config;
 
+our $DEPENDENCIES = [];
+
 sub get {
 	my (undef, $dataref) = @_;
 	$logger->trace('Collecting Disk info');

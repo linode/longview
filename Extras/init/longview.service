@@ -1,0 +1,10 @@
+[Unit]
+Description=Longview Agent
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/opt/linode/longview/Linode/Longview.pl
+
+[Install]
+WantedBy=multi-user.target

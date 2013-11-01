@@ -33,13 +33,15 @@ use warnings;
 
 use Linode::Longview::Util ':BASIC';
 
+our $DEPENDENCIES = ['Processes.pm'];
+
 our $sockInfoCache = {};
 our $IPTranslationCache = {};
 
 sub get {
 	my (undef, $dataref) = @_;
 
-	$logger->trace('Collecting network socket information');
+	$logger->trace('Collecting port information');
 
 	my @procs = Linode::Longview::DataGetter::Processes::process_list();
 	my ( %listening,    %active );

@@ -36,7 +36,7 @@ BEGIN {
 	push @INC, "$FindBin::RealBin/../";
 	push @INC, "$FindBin::RealBin/../lib/perl5";
 	push @INC, "$FindBin::RealBin/../lib/perl5/${Config{archname}}/";
-	push @INC, "$FindBin::RealBin/..//usr/include";
+	push @INC, "$FindBin::RealBin/../usr/include";
 	{
 		no warnings 'once';
 		$Net::HTTP::SOCKET_CLASS = 'IO::Socket::INET6';
@@ -50,7 +50,7 @@ use Sys::Hostname;
 use LWP::UserAgent;
 use Compress::Zlib;
 use IO::Socket::INET6;
-use Linode::Longview::DataGetter 'get';
+use Linode::Longview::DataGetter;
 use Linode::Longview::Util ':DRIVER';
 
 $logger->info("Starting Longview Agent version $VERSION");
@@ -92,11 +92,15 @@ my $stats = {
 
 _prep_for_main();
 
-my ($quit, $data) = (0, {});
+my ($quit, $data, $reload) = (0, {}, 0);
 while (!$quit) {
+	if ($reload){
+		reload_modules();
+		$reload = 0;
+	}
 	my $sleep = $SLEEP_TIME;
 	$data->{timestamp} = time;
-	get($_,$data,) for (qw(Processes Ports Memory CPU Network Disk SysInfo Packages));
+	get($_,$data,) for @{run_order()};
 
 	constant_push($stats->{payload},$data);
 	$data = {};
@@ -133,8 +137,10 @@ sub _prep_for_main {
 
 	daemonize_self();
 	enable_debug_logging() if(defined $ARGV[0] && $ARGV[0] =~ /Debug/i);
+	load_modules();
 
 	$0 = 'linode-longview';
-	$SIG{TERM} = $SIG{INT} = $SIG{HUP} = $SIG{QUIT} = sub { $quit = 1 };
+	$SIG{TERM} = $SIG{INT} = $SIG{QUIT} = sub { $quit = 1 };
+	$SIG{HUP} = sub { $reload = 1};
 	$logger->info('Start up complete');
 }

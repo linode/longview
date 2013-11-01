@@ -30,16 +30,111 @@ See the full license at L<http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
+use File::Basename;
+use File::Find;
 
 use Exporter 'import';
-our @EXPORT = 'get';
+our @EXPORT = qw(get load_modules reload_modules run_order);
+
+our $dep_info = {};
+our $module_order = [];
 
 use Linode::Longview::Util;
-require $_ for glob('/opt/linode/longview/Linode/Longview/DataGetter/*.pm');
+
+use FindBin;
+my $module_path = "$FindBin::RealBin/Longview/DataGetter/";
+
+sub run_order {
+  return $module_order;
+}
+
+sub load_modules {
+  $dep_info = {};
+  $module_order = [];
+
+  my @modules_on_disk;
+
+  my $find_sub = sub {
+    return if ! -f;
+    return unless m/\.pm$/;
+    my $module = $File::Find::name;
+    $logger->info("Loading module $module");
+    require $module;
+    (my $rpath = $module)   =~ s|$module_path||;;
+    (my $namepace = $rpath) =~ s|\.pm$||;
+    $namepace =~ s|/|::|;
+    {
+      no strict 'refs';
+      $dep_info->{$rpath} = ${"Linode::Longview::DataGetter::${namepace}::DEPENDENCIES"};
+    }
+  };
+  find($find_sub,$module_path);
+  my $resolve = resolve_deps($dep_info);
+  print_unresolved($resolve->{unresolved}) if (keys %{$resolve->{unresolved}});
+  $module_order = $resolve->{resolved};
+  for (@{$module_order}){
+    s|\.pm$||;
+    s|/|::|;
+  }
+}
+
+sub reload_modules {
+  $logger->info("Reloading modules");
+  delete $INC{$_} for grep {m|$module_path|} (keys %INC);
+  load_modules();
+}
+
+sub resolve_deps {
+  my $origGraph = shift;
+  my $depGraph = {};
+  #copy our dependency data so we don't wreck the original
+  @{$depGraph->{$_}} = @{$origGraph->{$_}} for (keys %{$origGraph});
+  my @resolved;
+  my @unresolved = keys %{$depGraph};
+  my @pending;
+  #Move everything with no dependencies straight in to pending
+  for my $child (keys %{$depGraph}) {
+    if (scalar(@{$depGraph->{$child}})==0) {
+      push @pending, $child;
+      @unresolved = grep {$_ ne $child} @unresolved;
+      delete $depGraph->{$child};
+     }
+  }
+  #Move things from pending to resolved, preform book keeping on children as needed
+  while (@pending) {
+    my $current = shift @pending;
+    push @resolved,$current;
+    my @needBookKeeping = grep {grep {$_ eq $current} @{$depGraph->{$_}}} keys %{$depGraph};
+    foreach my $child (@needBookKeeping) {
+      #remove the resolved dependency from that child's list
+      @{$depGraph->{$child}} = grep {$_ ne $current} @{$depGraph->{$child}};
+      #if that child has no further dependencies move it in to pending
+      unless (@{$depGraph->{$child}}){
+        push @pending, $child;
+        @unresolved = grep {$_ ne $child} @unresolved;
+        delete $depGraph->{$child};
+      }
+    }
+  }
+
+  return {resolved=>\@resolved,unresolved=>$depGraph};
+}
+
+sub print_unresolved {
+  my $unresolvedDeps = shift;
+  $logger->error("Unresolved dependencies for the following modules:");
+  for my $parent (keys %{$unresolvedDeps}) {
+    my $broke_dep = "$parent => ";
+    for my $child (@{$unresolvedDeps->{$parent}}) {
+      $broke_dep .= "$child ";
+    }
+    $logger->error($broke_dep);
+  }
+}
 
 sub get {
-        my ($key,$dataref) = @_;
-        return "Linode::Longview::DataGetter::${key}"->get($dataref);
+  my ($key,$dataref) = @_;
+  return "Linode::Longview::DataGetter::${key}"->get($dataref);
 }
 
 1;

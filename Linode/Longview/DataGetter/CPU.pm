@@ -32,6 +32,8 @@ use strict;
 use warnings;
 use Linode::Longview::Util ':BASIC';
 
+our $DEPENDENCIES = [];
+
 sub get {
 	my (undef, $dataref) = @_;
 
@@ -52,7 +54,6 @@ sub get {
 		$dataref->{LONGTERM}->{"CPU.$1.wait"} = $wait + 0;
 	}
 
-	$logger->trace('Collecting load average');
 	my $load = ( split( /\s/, ( slurp_file( $PROCFS . 'loadavg' ) )[0], 2 ) )[0] or do {
 		$logger->info("Couldn't check ${PROCFS}loadavg: $!");
 		return $dataref;

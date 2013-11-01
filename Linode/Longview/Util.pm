@@ -34,12 +34,14 @@ use warnings;
 use Exporter 'import';
 our @EXPORT = qw($logger);
 our %EXPORT_TAGS = (
-	DRIVER  => [qw(constant_push flatten_data slurp_file daemonize_self check_already_running $SLEEP_TIME enable_debug_logging $VERSION post $logger $apikey)],
-	BASIC   => [qw(slurp_file $PROCFS $logger)],
-	SYSINFO => [qw(slurp_file detect_system $VERSION $PROCFS $ARCH $logger)],
+	DRIVER       => [qw(constant_push flatten_data slurp_file daemonize_self check_already_running $SLEEP_TIME enable_debug_logging $VERSION post $logger $apikey)],
+	BASIC        => [qw(slurp_file $PROCFS $logger)],
+	SYSINFO      => [qw(slurp_file detect_system $VERSION $PROCFS $ARCH $logger)],
+	APPLICATIONS => [qw(get_config_file_name get_config_data application_error application_preflight $logger)],
 );
 our @EXPORT_OK
 	= qw(slurp_file detect_system constant_push flatten_data
+		 get_config_file_name get_config_data application_error application_preflight
 		 daemonize_self check_already_running enable_debug_logging post get_UA
 		 $PROCFS $ARCH $SLEEP_TIME $TICKS $VERSION $apikey);
 
@@ -54,7 +56,7 @@ our $logger = get_logger();
 our $gua;
 our $post_target   = 'https://longview.linode.com/post';
 
-our $VERSION = '1.0.1';
+our $VERSION = '1.1.0';
 our $TICKS   = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 our $PROCFS  = find_procfs()      or $logger->logdie("Couldn't find procfs: $!");
 our $ARCH    = get_architecture() or $logger->info("Couldn't determine architecture: $!");
@@ -63,6 +65,7 @@ our $SLEEP_TIME = 60;
 our $apikey;
 
 my $pid_file    = '/var/run/longview.pid';
+my $conf_path   = '/etc/linode/longview.d/';
 my $slots = 10;
 my %push_iteration;
 
@@ -71,7 +74,7 @@ sub get_UA {
 	$gua = LWP::UserAgent->new(
 		timeout => 10,
 		agent   => "Linode Longview $VERSION client: $apikey",
-		ssl_opts => {MultiHomed => 1, Timeout => 3}
+		ssl_opts => {MultiHomed => 1, Timeout => 10}
 	);
 	return $gua;
 }
@@ -233,6 +236,57 @@ sub check_already_running {
 	my $name = slurp_file($PROCFS . "$pid/cmdline");
 	return $pid if $name =~ /longview/i;
 	return 0;
+}
+
+sub get_config_file_name {
+       my $caller = shift || caller ;
+       $caller =~ s/.*:://;
+       return $conf_path . $caller . '.conf';
+}
+
+sub get_config_data {
+       my $file = shift;
+       my $ret  = {};
+       open my $fh, '<', $file or do {
+               $logger->warn("Unable to open $file: $!");
+               return $ret;
+       };
+       while (my $line = <$fh>) {
+               next if $line =~ /^\s*#/;
+               next if $line =~ /^\s*$/;
+               my ($key, $value) = $line =~ /^\s*(\S*)\s+(\S*)\s*$/;
+               unless ($key && $value) {
+                       $logger->error("Unable to parse line in $file: '$line' does not conform to standard");
+                       next;
+               }
+               $ret->{$key} = $value;
+       }
+       return $ret;
+}
+
+sub application_error {
+        my ($dataref, $namespace, $message, $code) = @_;
+        $logger->error($message);
+        $dataref->{INSTANT}->{$namespace . 'status'}         = $code;
+        $dataref->{INSTANT}->{$namespace . 'status_message'} = $message;
+        return $dataref;
+}
+
+sub application_preflight {
+	my ($dataref, $signatures, $config_file) = @_;
+	my ($found, @appkeys) = (undef, grep {/^Processes\./} keys (%{$dataref->{LONGTERM}}));
+	for my $sig (@$signatures) {
+		if (grep {m/\Q$sig/} @appkeys) {
+			$found = 1;
+			last;
+		}
+	}
+	return unless $found;
+
+	unless ( ((stat($config_file))[2] & 00007) == 0) {
+		$logger->logdie("$config_file should not be world-accessible. If you're unsure of which permissions you prefer, please run 'chown root:root $config_file && chmod 400 $config_file'");
+	}
+	return 1;
 }
 
 1;

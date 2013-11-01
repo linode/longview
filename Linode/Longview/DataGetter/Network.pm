@@ -33,6 +33,8 @@ use warnings;
 
 use Linode::Longview::Util ':BASIC';
 
+our $DEPENDENCIES = [];
+
 sub get {
 	my (undef, $dataref) = @_;
 

@@ -37,6 +37,8 @@ use Linode::Longview::Util ':SYSINFO';
 use Linux::Distribution qw(distribution_name distribution_version);
 use POSIX 'uname';
 
+our $DEPENDENCIES = [];
+
 sub get {
 	my (undef, $dataref) = @_;
 	$logger->trace('Collecting SysInfo');
