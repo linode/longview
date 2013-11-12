@@ -46,6 +46,7 @@ our @EXPORT_OK
 		 $PROCFS $ARCH $SLEEP_TIME $TICKS $VERSION $apikey);
 
 use Linode::Longview::Logger;
+use Linode::Longview::STDERRLogger;
 
 use Carp;
 use POSIX;
@@ -221,6 +222,7 @@ sub daemonize_self {
  	open STDIN, '<', '/dev/null'   or $logger->logdie("Can't read /dev/null: $!");
  	open STDOUT, '>>', '/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
  	open STDERR, '>>', '/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
+	tie *STDERR, "Linode::Longview::STDERRLogger";
  	defined( my $pid = fork )      or $logger->logdie("Can't fork: $!");
  	exit if $pid;
  	setsid or $logger->logdie("Can't start a new session: $!");
