@@ -60,7 +60,7 @@ sub get {
 			}
 		}
 		unless ( $creds->{username} && $creds->{password} ) {
-			application_error( $dataref, $namespace,
+			return application_error( $dataref, $namespace,
 				'Unable to connect to the database, no credentials found',
 				1 );
 		}
