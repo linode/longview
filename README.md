@@ -42,7 +42,7 @@ The Longview client should be running with a 2.6 or higher kernel.
 
 ### Operating system
 
-The Longview client can be installed on any system running Linux. Linode provides packages for Debian, Ubuntu, CentOS, and Fedora. A generic tarball is provided for systems without a pre-rolled package.
+The Longview client can be installed on any system running Linux. Linode provides packages for Debian, Ubuntu, CentOS, and Fedora. A tagged release tarball is provided for systems without a pre-rolled package.
 
 ## Client usage
 
@@ -51,6 +51,8 @@ The Longview client can be installed on any system running Linux. Linode provide
 The client is normally installed by running a one-liner provided by the Linode Manager, which will automatically detect your operating system and drop your client's API key onto the filesystem.
 
 The client installs itself to /opt/linode/longview and will drop the API key under /etc/linode/longview.key.
+
+Alternately, you can obtain a full copy of the repository, which will allow the Extras/install-dependencies.sh script to install (using cpanm) all required perl modules in a lib directory in your local copy of the repository.
 
 ### Running the Longview client
 
