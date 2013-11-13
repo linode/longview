@@ -61,9 +61,12 @@ sub get {
 		}
 	}
 	my $ua  = get_UA();
-	$ua->ssl_opts(verify_hostname => 0, SSL_verify_mode => 0x00) if $ua->can('ssl_opts');
+
+	# temporarily skip checks for self-signed certs
+	$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
 	my $res = $ua->get($determined_location);
-	$ua->ssl_opts(verify_hostname => 1, SSL_verify_mode => undef) if $ua->can('ssl_opts');
+	$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 1;
+
 	unless ( $res->is_success ) {
 		return application_error(
 			$dataref,
