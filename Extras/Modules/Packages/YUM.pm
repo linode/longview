@@ -42,11 +42,12 @@ sub get {
 
 	$logger->trace('Entering YUM module');
 
-	return $dataref if get_DB_touch_dt() == $cache_touch_dt;
+	return $dataref if defined $cache_touch_dt && get_DB_touch_dt() == $cache_touch_dt;
 
 	my %u_pkgs = upgradable_pkgs();
 	if (!%u_pkgs){
 		$dataref->{INSTANT}->{Packages} = [];
+		$cache_touch_dt = get_DB_touch_dt();
 		return $dataref;
 	}
 	my %c_pkgs = current_pkgs();
