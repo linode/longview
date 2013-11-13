@@ -284,7 +284,7 @@ sub application_preflight {
 		}
 	}
 	return unless $found;
-	return unless -e $config_file;
+	return 1 unless -e $config_file;
 
 	unless ( ((stat($config_file))[2] & 00007) == 0) {
 		$logger->logdie("$config_file should not be world-accessible. If you're unsure of which permissions you prefer, please run 'chown root:root $config_file && chmod 400 $config_file'");
