@@ -278,7 +278,7 @@ sub application_preflight {
 	my ($dataref, $signatures, $config_file) = @_;
 	my ($found, @appkeys) = (undef, grep {/^Processes\./} keys (%{$dataref->{LONGTERM}}));
 	for my $sig (@$signatures) {
-		if (grep {m/\Q$sig/} @appkeys) {
+		if (grep {m/\Q.$sig./} @appkeys) {
 			$found = 1;
 			last;
 		}
