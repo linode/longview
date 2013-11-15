@@ -24,7 +24,7 @@ Linode Longview also gives you a high-level view of your fleet and lets you sort
 * Overall stats for CPU, memory, disk IO, listening services, active connections, network transfer, system details, and more
 * Per-process statistics including process count, IO, memory, and CPU usage
 * Longview Pro includes unlimited data retention and up to 1 minute resolution
-* Longview Free includes 30 minutes of data retention and 5 minute resolution
+* Longview Free includes 12 hours of data retention and 5 minute resolution
 
 ### Linode Library on Longview
 
