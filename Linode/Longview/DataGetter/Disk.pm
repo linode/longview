@@ -61,6 +61,11 @@ sub get {
 		#  202 0 xvda 3125353 13998 4980 2974 366 591 760 87320 15 366 9029
 		my ( $major, $minor, $device, $reads, $read_sectors, $writes, $write_sectors ) = ( split( /\s+/, $line ) )[ 0..3, 5, 7, 9 ];
 		my $sector_size = slurp_file("/sys/block/$device/queue/hw_sector_size");
+		unless(defined $sector_size){
+			(my $phys_dev = $device) =~ /\d+$//;
+			$sector_size = slurp_file("/sys/block/$phys_dev/queue/hw_sector_size");
+			$sector_size = 512 unless defined $sector_size;
+		}
 		my $read_bytes = $read_sectors * $sector_size;
 		my $write_bytes = $write_sectors * $sector_size;
 		$device = '/dev/' . $device;
