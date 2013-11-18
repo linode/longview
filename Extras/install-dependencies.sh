@@ -33,7 +33,10 @@ check_builddep cc
 http_fetch http://cpanmin.us /tmp/cpanm
 chmod +x /tmp/cpanm
 
-/tmp/cpanm -L $BASE_DIR LWP::UserAgent Crypt::SSLeay IO::Socket::INET6 Linux::Distribution JSON::PP JSON Log::LogLite Try::Tiny DBI
+echo "==== Installing Longview core dependencies ===="
+/tmp/cpanm -q -L $BASE_DIR LWP::UserAgent Crypt::SSLeay IO::Socket::INET6 Linux::Distribution JSON::PP JSON Log::LogLite Try::Tiny DBI
+echo "==== Installing Longview-MySQL dependencies ===="
+/tmp/cpanm -q  -L $BASE_DIR DBD::mysql
 rm /tmp/cpanm
 
 h2ph -d $BASE_DIR /usr/include/syscall.h
