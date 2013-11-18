@@ -5,6 +5,9 @@ After=network.target
 [Service]
 Type=forking
 ExecStart=/opt/linode/longview/Linode/Longview.pl
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/var/run/longview.pid
 
 [Install]
 WantedBy=multi-user.target
