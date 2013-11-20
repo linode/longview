@@ -62,7 +62,7 @@ sub get {
 		my ( $major, $minor, $device, $reads, $read_sectors, $writes, $write_sectors ) = ( split( /\s+/, $line ) )[ 0..3, 5, 7, 9 ];
 		my $sector_size = slurp_file("/sys/block/$device/queue/hw_sector_size");
 		unless(defined $sector_size){
-			(my $phys_dev = $device) =~ /\d+$//;
+			(my $phys_dev = $device) =~ s/\d+$//;
 			$sector_size = slurp_file("/sys/block/$phys_dev/queue/hw_sector_size");
 			$sector_size = 512 unless defined $sector_size;
 		}
