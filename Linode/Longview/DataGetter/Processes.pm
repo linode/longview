@@ -51,8 +51,11 @@ sub process_info {
 	# all or nothing, grab what we need asap
 	my @proc_file  = slurp_file( $PROCFS . "$pid/status" ) or return;
 	my $stat_line = slurp_file( $PROCFS . "$pid/stat" )   or return;
+	my $cmd_line = slurp_file( $PROCFS . "$pid/cmdline" ) or return;
 	# io stats are optional depending on kernel
 	my @iosample  = slurp_file( $PROCFS . "$pid/io" ) ;
+
+	$proc{longname} = (split("\0", $cmd_line))[0];
 
 	for my $line (@proc_file) {
 		if ( $line =~ m/^Name:\s+(.*)/ )         { $proc{name} = $1; next; }
@@ -94,6 +97,7 @@ sub get {
 		next if ( $info{pid} == 2 );
 		$info{name} =~ s/\./\\\./g;
 
+		$dataref->{INSTANT}->{"Processes.${info{name}}.longname"} = $info{longname};
 		$dataref->{LONGTERM}->{"Processes.${info{name}}.${info{user}}.count"}++;
 		$dataref->{LONGTERM}->{"Processes.${info{name}}.${info{user}}.mem"}             += $info{mem} + 0;
 		$dataref->{LONGTERM}->{"Processes.${info{name}}.${info{user}}.cpu"}             += $info{cpu}           if (defined $info{cpu});

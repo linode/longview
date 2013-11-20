@@ -283,6 +283,17 @@ sub application_preflight {
 			last;
 		}
 	}
+	unless ($found) {
+		for my $longname (grep {/^Processes\..*\.longname/} keys (%{$dataref->{INSTANT}})){
+			for my $sig (@$signatures) {
+				if($dataref->{INSTANT}->{$longname} =~ /$sig$/){
+					$found = 1;
+					last;
+				}
+			}
+		}
+	}
+
 	return unless $found;
 	return 1 unless -e $config_file;
 
