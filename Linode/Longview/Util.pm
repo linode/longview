@@ -51,6 +51,7 @@ use Linode::Longview::STDERRLogger;
 use Carp;
 use POSIX;
 use JSON;
+use LWP::UserAgent;
 
 our $logger = get_logger();
 

@@ -34,7 +34,7 @@ use warnings;
 use Linode::Longview::Util qw(:APPLICATIONS get_UA);
 
 our $DEPENDENCIES = ['Processes.pm'];
-my $SIGNATURES    = [ 'apache2', 'httpd' ];
+our $SIGNATURES    = [ 'apache2', 'httpd' ];
 
 my $default_location    = 'http://127.0.0.1/server-status?auto';
 my $determined_location = undef;

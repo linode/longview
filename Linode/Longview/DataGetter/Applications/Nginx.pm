@@ -34,7 +34,7 @@ use warnings;
 use Linode::Longview::Util qw(:APPLICATIONS get_UA);
 
 our $DEPENDENCIES = ['Processes.pm'];
-my $SIGNATURES = ['nginx'];
+our $SIGNATURES = ['nginx'];
 
 my $default_location    = 'http://127.0.0.1/nginx_status';
 my $determined_location = undef;

@@ -35,7 +35,7 @@ use DBI;
 use Linode::Longview::Util qw(:APPLICATIONS slurp_file);
 
 our $DEPENDENCIES = ['Processes.pm'];
-my $SIGNATURES = ['mysqld'];
+our $SIGNATURES = ['mysqld'];
 my $namespace  = 'Applications.MySQL.';
 
 sub get {
