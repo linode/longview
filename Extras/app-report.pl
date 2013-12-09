@@ -52,8 +52,6 @@ use Term::ANSIColor;
 use Tie::File;
 use Fcntl 'O_RDONLY';
 
-use Data::Printer;
-
 our $processes = {};
 
 my $force = '';
@@ -146,9 +144,9 @@ sub check_apache {
 	my ($vname, $conf_file, $line_number);
 
 	my $ctl_bin = "apache2ctl";
-	$ctl_bin = "httpdctl" if $sys_type eq "redhat";
+	$ctl_bin = "apachectl" if $sys_type eq "redhat";
 
-	open(A2C,"$ctl_bin -M 2>/dev/null|") or do {
+	open(A2C,"$ctl_bin -t -D DUMP_MODULES 2>/dev/null|") or do {
 		print "Could not exec the Apache control binary ($ctl_bin)\n";
 		return;
 	};
@@ -170,7 +168,7 @@ sub check_apache {
 		return unless $force;
 	}
 
-	open(A2C,"$ctl_bin -S 2>/dev/null|") or do {
+	open(A2C,"$ctl_bin -t -D DUMP_VHOSTS 2>/dev/null|") or do {
 		print "Could not exec the Apache control binary ($ctl_bin)\n";
 		return;
 	};
@@ -237,6 +235,7 @@ sub check_mysql {
 	my $connection_string = "DBI:mysql:host=localhost;";
 
 	my $socket_error = 0;
+	my $spath_from_error;
 
 	unless ($running_apps->{MySQL}) {
 		print color 'bold red';
@@ -252,17 +251,18 @@ sub check_mysql {
 		};
 		if($success) {
 			print color 'bold green';
-			print "Connected to mysql with user '$conf->{username}' and the supplied password\n";
+			print "Connected to mysql with user '$conf->{username}' and the password supplied in /etc/linode/longview.d/MySQL.conf\n";
 			print color 'reset';
 			return unless $force;
 		}
 		else {
 			print color 'bold yellow';
-			print "Could not connect to mysql with user '$conf->{username}' and the supplied password\n";
+			print "Could not connect to mysql with user '$conf->{username}' and the password supplied in /etc/linode/longview.d/MySQL.conf\n";
 			print $DBI::errstr . "\n" if $verbose;
 			print color 'reset';
 			if($DBI::errstr =~ /Can't connect to local MySQL server through socket/){
 				$socket_error = 1;
+				($spath_from_error) = ($DBI::errstr =~ /^Can't connect to local MySQL server through socket '(.*)'/);
 			}
 		}
 	}
@@ -302,13 +302,57 @@ sub check_mysql {
 				print color 'reset';
 				if($DBI::errstr =~ /Can't connect to local MySQL server through socket/){
 					$socket_error = 1;
+					($spath_from_error) = ($DBI::errstr =~ /^Can't connect to local MySQL server through socket '(.*)'/);
 				}
 			}
 		}
 	}
 	if($socket_error){
-		print "Looks like a socket error, add smartness here\n";
+		print "Could not connect due to socket error.\n";
+		my $conf_file = "/etc/my.cnf";
+		$conf_file = "/etc/mysql/my.cnf" if $sys_type eq "debian";
+		my $spath_from_conf = mysql_socket_path_from_config($conf_file);
+		print "Found socket ";
+		print color 'bold';
+		print $spath_from_conf;
+		print color 'reset';
+		print " in $conf_file\n";
+		unless (-S $spath_from_conf){
+			print color 'bold red';
+			print "Socket $spath_from_conf does not exist\n";
+			print color 'reset';
+		}
+		print "Client attempted to connect using socket ";
+		print color 'bold';
+		print "$spath_from_error\n";
+		print color 'reset';
+		unless($spath_from_conf eq $spath_from_error){
+			print color 'bold red';
+			print "Client appears to be using the wrong socket path\n";
+			print color 'reset';
+		}
 	}
+}
+
+
+sub mysql_socket_path_from_config {
+	my $file = shift;
+
+	my @conf_lines = slurp_file($file);
+
+	my ($section, $socket_path) = ('',undef);
+
+	foreach my $line (@conf_lines) {
+		chomp($line);
+		if($line =~ /^\s*\[\S+\]/) {
+			($section) = ($line =~ /^\s*\[(\S+)\]/);
+		}
+		next unless $section eq "mysqld";
+		if($line =~ /^\s*socket\s*=\s*\S+/){
+			($socket_path) = ($line =~ /^\s*socket\s*=\s*(\S+)/);
+		}
+	}
+	return $socket_path;
 }
 
 sub check_nginx {
