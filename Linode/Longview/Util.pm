@@ -287,7 +287,7 @@ sub application_preflight {
 	unless ($found) {
 		for my $longname (grep {/^Processes\..*\.longname/} keys (%{$dataref->{INSTANT}})){
 			for my $sig (@$signatures) {
-				if($dataref->{INSTANT}->{$longname} =~ /$sig$/){
+				if($dataref->{INSTANT}->{$longname} =~ /\b$sig\b/){
 					$found = 1;
 					last;
 				}
