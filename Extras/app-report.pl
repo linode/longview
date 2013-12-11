@@ -57,9 +57,23 @@ our $processes = {};
 my $force = '';
 my $module = 'ALL';
 my $verbose = '';
+my $usage = '';
 
 Getopt::Long::Configure ("bundling");
-GetOptions ('f|force' => \$force, 'm|module=s' => \$module, 'v|verbose' => \$verbose);
+GetOptions ('h|help' => \$usage, 'f|force' => \$force, 'm|module=s' => \$module, 'v|verbose' => \$verbose);
+
+if ($usage){
+	print <<USAGE;
+Usage: $0 [OPTIONS]
+
+-v, --verbose		Include raw error messages, and config file sections
+-f, --force		Run all checks even if successful, or continue checking after critical errors
+-m, --module <Name>	Only run checks for the named applications
+-h, --help		Display this text
+
+USAGE
+	exit 0;
+}
 
 our $sys_type ="generic";
 $sys_type = "debian" if -e "/etc/debian_version";
