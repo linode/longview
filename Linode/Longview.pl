@@ -94,8 +94,8 @@ _prep_for_main();
 
 my ($quit, $reload) = (0, 0);
 while (!$quit) {
-	if ($reload){
-		reload_modules();
+	if ($reload) {
+		# Nothing to do, all config reloads each run
 		$reload = 0;
 	}
 	my $sleep = $SLEEP_TIME;
@@ -133,7 +133,6 @@ sub _prep_for_main {
 
 	daemonize_self();
 	enable_debug_logging() if(defined $ARGV[0] && $ARGV[0] =~ /Debug/i);
-	load_modules();
 
 	$0 = 'linode-longview';
 	$SIG{TERM} = $SIG{INT} = $SIG{QUIT} = sub { $quit = 1 };

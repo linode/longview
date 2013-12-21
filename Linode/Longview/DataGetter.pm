@@ -32,9 +32,10 @@ use strict;
 use warnings;
 use File::Basename;
 use File::Find;
+use JSON;
 
 use Exporter 'import';
-our @EXPORT = qw(get_data load_modules reload_modules run_order);
+our @EXPORT = qw(get_data);
 
 our $dep_info = {};
 our $module_order = [];
@@ -139,8 +140,25 @@ sub get {
 
 sub get_data {
   my $data = {};
-  $data->{timestamp} = time;
-  get($_,$data,) for @{run_order()};
+  my $starttime = time();
+  pipe(READ,WRITE);
+  WRITE->autoflush();
+  my $pid = fork();
+  if ($pid == 0) {
+    # Child process
+    close READ;
+    load_modules();
+    get($_,$data,) for @{run_order()};
+    print WRITE encode_json($data);
+    exit(0);
+  } else {
+    # Parent process
+    wait();
+    close WRITE;
+    my $json = <READ>;
+    $data = decode_json($json);
+  }
+  $data->{timestamp} = $starttime;
   return $data;
 }
 
