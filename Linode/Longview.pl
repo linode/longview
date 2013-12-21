@@ -92,19 +92,15 @@ my $stats = {
 
 _prep_for_main();
 
-my ($quit, $data, $reload) = (0, {}, 0);
+my ($quit, $reload) = (0, 0);
 while (!$quit) {
 	if ($reload){
 		reload_modules();
 		$reload = 0;
 	}
 	my $sleep = $SLEEP_TIME;
-	$data->{timestamp} = time;
-	get($_,$data,) for @{run_order()};
 
-	constant_push($stats->{payload},$data);
-	$data = {};
-
+	constant_push($stats->{payload}, get_data());
 	$stats->{timestamp} = time;
 	my $req = post($stats);
 

@@ -34,7 +34,7 @@ use File::Basename;
 use File::Find;
 
 use Exporter 'import';
-our @EXPORT = qw(get load_modules reload_modules run_order);
+our @EXPORT = qw(get_data load_modules reload_modules run_order);
 
 our $dep_info = {};
 our $module_order = [];
@@ -135,6 +135,13 @@ sub print_unresolved {
 sub get {
   my ($key,$dataref) = @_;
   return "Linode::Longview::DataGetter::${key}"->get($dataref);
+}
+
+sub get_data {
+  my $data = {};
+  $data->{timestamp} = time;
+  get($_,$data,) for @{run_order()};
+  return $data;
 }
 
 1;
