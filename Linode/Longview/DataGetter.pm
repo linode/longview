@@ -59,7 +59,7 @@ sub load_modules {
     return if ! -f;
     return unless m/\.pm$/;
     my $module = $File::Find::name;
-    $logger->info("Loading module $module");
+    $logger->debug("Loading module $module");
     require $module;
     (my $rpath = $module)   =~ s|$module_path||;;
     (my $namepace = $rpath) =~ s|\.pm$||;
@@ -77,12 +77,6 @@ sub load_modules {
     s|\.pm$||;
     s|/|::|;
   }
-}
-
-sub reload_modules {
-  $logger->info("Reloading modules");
-  delete $INC{$_} for grep {m|$module_path|} (keys %INC);
-  load_modules();
 }
 
 sub resolve_deps {
