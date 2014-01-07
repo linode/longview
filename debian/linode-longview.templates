@@ -1,0 +1,58 @@
+Template: Longview/APIKey
+Type: string
+Default: 
+Description: Please enter your Longview API Key:
+ Please enter your Longview API Key.
+
+Template: Longivew/apache-location
+Type: string
+Default: 
+Description: Mod_Status URL:
+ Not really for human consumption.
+
+Template: Longview/apache-try-configure
+Type: boolean
+Default: 
+Description: Autoconfigure Mod_Status:
+  Longview has detected Apache running on this server but was unable to access
+  the server status page. Would you like to attempt to automatically configure
+  mod_status? This will require reloading Apache to enable.
+
+Template: Longivew/nginx-location
+Type: string
+Default: 
+Description: Nginx Status URL:
+ Not really for human consumption.
+
+Template: Longview/nginx-try-configure
+Type: boolean
+Default: 
+Description: Autoconfigure status page:
+  Longview has detected Nginx running on this server but was unable to access
+  the server status page. Would you like to attempt to automatically configure
+  the Nginx status module? This will require restarting Nginx to enable.
+
+Template: Longview/mysql-create-creds
+Type: note
+Default: 
+Description: Unable to automatically configure MySQL plugin:
+  Longview has detected MySQL running on this server but was unable to
+  automatically configure the connection. To allow Longview to access your
+  MySQL instance please run the following queries:
+  ${create_statement}
+  FLUSH PRIVILEGES;
+
+Template: Longview/mysql-overwrite-creds
+Type: boolean
+Default: 
+Description: Overwrite existing Longview MySQL config:
+  Longview has detected MySQL running on this server but was unable to
+  log in with the provided credentials for the '${found_user}' user. However a
+  'debian-sys-maint' user was found, would you like to configure longview to
+  use those credentials instead?
+
+Template: Longivew/mysql-password
+Type: string
+Default: 
+Description: Longview Mysql user password:
+  Not really for human consumption.

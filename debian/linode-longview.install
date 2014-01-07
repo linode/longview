@@ -1,0 +1,5 @@
+Linode/* opt/linode/longview/Linode/
+Extras/app-report.pl opt/linode/longview/Extras/
+Extras/Modules/Packages/APT.pm opt/linode/longview/Linode/Longview/DataGetter/Packages/
+Extras/init/longview etc/init.d
+Extras/conf/* etc/linode/longview.d/

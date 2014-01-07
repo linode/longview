@@ -1,0 +1,192 @@
+#!/bin/sh
+set -e
+
+longview_config_dir='/etc/linode/longview.d/'
+
+echoerr() { echo "$@" 1>&2; }
+
+_fake_curl() {
+	_input_url=$1
+	PERL_LWP_SSL_VERIFY_HOSTNAME=0 perl -MLWP::UserAgent -e '$ua=LWP::UserAgent->new(); print $ua->get("$ARGV[0]")->decoded_content;' "$1"
+	return 0
+}
+
+_check_apache_url() {
+	_apache_url=$1
+	_fake_curl "$_apache_url" | grep -q 'Scoreboard:'
+	return $?
+}
+
+_check_nginx_url() {
+	_nginx_url=$1
+	_fake_curl "$_nginx_url" | grep -q 'server accepts handled requests'
+	return $?
+}
+
+_write_option(){
+	_write_file=$1
+	_checked_directive=$2
+	_value=$3
+	if egrep "^\s*$_checked_directive[[:space:]]+\S+" $_write_file >/dev/null; then
+		sed -i "s|^\s*$_checked_directive.*|$_checked_directive $_value|g" $_write_file
+	else
+		if ! tail -c1 $_write_file | grep '^$' >/dev/null; then
+			echo "" >> $_write_file
+		fi
+		echo "$_checked_directive $_value" >> $_write_file
+	fi
+}
+
+apache_install() {
+	apache_config_filename=${longview_config_dir}Apache.conf
+
+	db_get Longivew/apache-location
+	location="$RET"
+
+	if [ ! -z "$location" ]; then
+		_write_option $apache_config_filename location "$location"
+		apache_url="$location"
+	else
+		apache_url='http://127.0.0.1/server-status?auto'
+	fi
+
+	db_fset Longview/apache-try-configure seen "false"
+	db_get Longview/apache-try-configure
+	if [ "$RET" != "true" ]; then
+		return 0
+	fi
+	db_set Longview/apache-try-configure "false"
+
+	# check for mod_status
+	if [ ! -e /etc/apache2/mods-enabled/status.conf ]; then
+		if ! a2enmod status;  then
+			echoerr "Unable to enable mod_status for Apache. Please see https://library.linode.com/longview/longview-for-apache#sph_manual-configuration-all-distributions for instructions on configuring Apache to work with Longview"
+			return 1
+		fi
+	else
+		pre_existing_status="true"
+	fi
+
+	cat >> /etc/apache2/mods-enabled/status.conf <<END
+<IfModule mod_status.c>
+ExtendedStatus On
+<Location /server-status>
+	SetHandler server-status
+	Order deny,allow
+	Deny from all
+	Allow from 127.0.0.1
+</Location>
+</IfModule>
+END
+
+	apache_url_https=`echo $apache_url | sed 's/^http/https/'`
+	if /etc/init.d/apache2 reload; then
+		if _check_apache_url $apache_url; then
+			_write_option $apache_config_filename location "$apache_url"
+			echoerr "Apache mod_status enabled"
+			return 0
+		elif _check_apache_url $apache_url_https; then
+			_write_option $apache_config_filename location "$apache_url_https"
+			return 0;
+		fi
+	fi
+
+	echoerr "Enabling mod_status for Apache failed. Rolling back changes"
+	if [ -z "$pre_existing_status" ]; then
+		a2dismod status
+	fi
+	head -n -9 /etc/apache2/mods-available/status.conf | tee /etc/apache2/mods-available/status.conf > /dev/null
+	/etc/init.d/apache2 reload
+	echoerr "Please see https://library.linode.com/longview/longview-for-apache#sph_manual-configuration-all-distributions for instructions on configuring Apache to work with Longview. Auto-configuration failed"
+}
+
+nginx_install() {
+	nginx_config_filename=${longview_config_dir}Nginx.conf
+
+	db_get Longivew/nginx-location
+	location="$RET"
+
+	if [ ! -z "$location" ]; then
+		_write_option $nginx_config_filename location "$location"
+		return 0
+	fi
+
+	db_fset Longview/nginx-try-configure seen "false"
+	db_get Longview/nginx-try-configure
+	if [ "$RET" != "true" ]; then
+		return 0
+	fi
+	db_set Longview/nginx-try-configure "false"
+
+	cat >> /etc/nginx/sites-available/longview <<END
+server {
+	listen 127.0.0.2:80;
+	server_name 127.0.0.2;
+
+	location /nginx_status {
+		stub_status on;
+		allow 127.0.0.1;
+		deny all;
+	}
+}
+END
+
+	ln -s /etc/nginx/sites-available/longview /etc/nginx/sites-enabled/
+	if [ -h /etc/nginx/sites-enabled/longview ]; then
+		if /etc/init.d/nginx restart; then
+			if _check_nginx_url http://127.0.0.2/nginx_status; then
+				echoerr "Finished configuring nginx, writing new configuration to $nginx_config_filename"
+				_write_option $nginx_config_filename location "http://127.0.0.2/nginx_status"
+				return 0
+			fi
+		fi
+	fi
+	echoerr "Enabling stub_status failed. Rolling back changes"
+	rm /etc/nginx/sites-enabled/longview /etc/nginx/sites-available/longview
+	/etc/init.d/nginx restart
+	echoerr "Please see https://library.linode.com/longview/longview-for-nginx#sph_manual-configuration-all-distributions for instructions on configuring nginx to work with Longview. Auto-configuration failed"
+}
+
+mysql_install() {
+	mysql_config_filename=${longview_config_dir}MySQL.conf
+
+	db_get Longview/mysql-overwrite-creds
+	overwrite="$RET"
+	db_fset Longview/mysql-create-creds seen "false"
+	db_set Longview/mysql-overwrite-creds "false"
+	if [ "$overwrite" = "true" ]; then
+		sed -i 's/^\s*\(username.*\)/#\1/g' $mysql_config_filename
+		sed -i 's/^\s*\(password.*\)/#\1/g' $mysql_config_filename
+		return 0
+	fi
+
+	db_get Longivew/mysql-password
+	pass="$RET"
+
+	if [ ! -z "$pass" ]; then
+		_write_option $mysql_config_filename username "linode-longview"
+		_write_option $mysql_config_filename password "$pass"
+		db_set Longivew/mysql-password ""
+		return 0
+	fi
+}
+
+. /usr/share/debconf/confmodule
+if [ ! -e /etc/linode/longview.key ]; then
+	db_get Longview/APIKey
+	echo "$RET" > /etc/linode/longview.key
+fi
+
+apache_install
+nginx_install
+mysql_install
+chmod -R o-rwx $longview_config_dir
+db_stop
+
+if invoke-rc.d longview status 1>/dev/null 2>&1; then
+	invoke-rc.d longview restart || true
+else
+	invoke-rc.d longview start || true
+fi
+
+update-rc.d longview defaults

@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "purge" ]; then
+	. /usr/share/debconf/confmodule
+	db_purge
+	db_stop
+fi
+
+if [ "$1" = "upgrade" ]; then
+	exit 0
+fi
+
+if [ "$1" = "remove" -o "$1" = "purge" ]; then
+	update-rc.d -f longview remove
+fi

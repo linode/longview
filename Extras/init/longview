@@ -1,45 +1,70 @@
-#!/bin/bash
+#!/bin/sh
 
-SUCCESS="\E[32;40mSuccess\E[0m"
-FAILED="\E[31;40mFailed\E[0m"
+### BEGIN INIT INFO
+# Provides:             longview
+# Required-Start:       $network $local_fs
+# Required-Stop:        $network $local_fs
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Longview Monitoring Agent
+### END INIT INFO
 
-LV="/opt/linode/longview/Linode/Longview.pl"
+set -e
+
+umask 022
+
+DAEMON="/opt/linode/longview/Linode/Longview.pl"
+PID="/var/run/longview.pid"
+. /lib/lsb/init-functions
 
 case "$1" in
 	start)
-		echo -n $"Starting longview: "
-		$LV
-		RET=$?
-		[ $RET -eq 0 ] && echo -e $SUCCESS || echo -e $FAILED
-		exit $RET
-	;;
+		log_daemon_msg "Starting Longview Agent" "longview"
+		if start-stop-daemon --start -p $PID --startas $DAEMON 2>/dev/null; then
+			log_end_msg 0
+		else
+			log_end_msg 1
+		fi
+		;;
 	debug)
-		echo -n $"Starting longview (With Debug Flag): "
-		$LV Debug
-		RET=$?
-		[ $RET -eq 0 ] && echo -e $SUCCESS || echo -e $FAILED
-		exit $RET
-	;;
+		log_daemon_msg "Starting Longview Agent (With Debug Flag)" "longview"
+		if start-stop-daemon --start -p $PID --startas $DAEMON Debug 2>/dev/null; then
+			log_end_msg 0
+		else
+			log_end_msg 1
+		fi
+		;;
 	stop)
-		echo -n $"Stopping longview: "
-		kill `cat /var/run/longview.pid` 2>/dev/null
-		RET=$?
-		[ $RET -eq 0 ] && echo -e $SUCCESS || echo -e $FAILED
-		exit $RET
-	;;
+		log_daemon_msg "Stopping Longview Agent" "longview"
+		if start-stop-daemon --stop --quiet -p $PID 2>/dev/null; then
+			log_end_msg 0
+		else
+			log_end_msg 1
+		fi
+		;;
 	restart)
-		$0 stop
-		$0 start
-	;;
+		log_daemon_msg "Restarting Longview Agent" "longview"
+		start-stop-daemon --stop --quiet --oknodo --retry 30 -p /var/run/longview.pid
+		if start-stop-daemon --start -p $PID --startas $DAEMON 2>/dev/null; then
+			log_end_msg 0
+		else
+			log_end_msg 1
+		fi
+		;;
+	reload|force-reload)
+		log_daemon_msg "Restarting Longview Agent" "longview"
+		if start-stop-daemon --stop --quiet --oknodo --signal HUP -p /var/run/longview.pid; then
+			log_end_msg 0
+		else
+			log_end_msg 1
+		fi
+		;;
 	status)
-		[ ! -e /var/run/longview.pid ] && echo "No longview pid file: status unknown" && exit 1
-		PID=`cat /var/run/longview.pid`
-		grep "linode-longview" "/proc/$PID/cmdline" 2>/dev/null
-		RET=$?
-		[ $RET -eq 0 ] && echo "Longview is running" || echo "Longview is not running"
-		exit $RET
-	;;
+		status_of_proc -p $PID $DAEMON longview && exit 0 || exit $?
+		;;
 	*)
-		echo $"Usage: $0 {start|stop|restart|status}"
-	;;
+		log_action_msg "Usage: /etc/init.d/longview {start|stop|restart|force-reload|reload|status}"
+		exit 1
 esac
+
+exit 0
