@@ -66,7 +66,7 @@ sub get {
 		}
 	}
 
-	my $dbh = DBI->connect_cached( "DBI:mysql:host=localhost;", $creds->{username}, $creds->{password} ) or do {
+	my $dbh = DBI->connect_cached( "DBI:mysql:host=127.0.0.1;", $creds->{username}, $creds->{password} ) or do {
 		return application_error( $dataref, $namespace,
 			'Unable to connect to the database: ' . $DBI::errstr,
 			2 );
