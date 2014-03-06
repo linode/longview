@@ -58,7 +58,7 @@ our $logger = get_logger();
 our $gua;
 our $post_target   = 'https://longview.linode.com/post';
 
-our $VERSION = '1.1.3';
+our $VERSION = '1.1.4';
 our $TICKS   = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 our $PROCFS  = find_procfs()      or $logger->logdie("Couldn't find procfs: $!");
 our $ARCH    = get_architecture() or $logger->info("Couldn't determine architecture: $!");
@@ -84,6 +84,9 @@ sub get_UA {
 sub post {
 	my $payload = shift;
 	my $ua = get_UA();
+	local $SIG{ALRM} = sub { die "LWP-Timeout";};
+	alarm(180);
+	$logger->trace("Posting Data");
 	my $req = $ua->post(
 		$post_target,
 		Content_Type => 'form-data',
@@ -97,6 +100,7 @@ sub post {
 			]
 		]
 	);
+	alarm(0);
 	return $req;
 }
 
