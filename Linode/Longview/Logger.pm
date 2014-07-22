@@ -25,7 +25,7 @@ for my $level ( keys %$levels ) {
     *{$level} = sub {
         my ( $self, $message ) = @_;
 
-        my $ts = strftime( '%m/%d %T', localtime );
+        my $ts = strftime( '%F %T', localtime );
         $self->{logger}->write(
             sprintf( '%s %s Longview[%i] - %s', $ts, uc($level), $$, $message ),
             $levels->{$level} );
