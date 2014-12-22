@@ -160,7 +160,7 @@ mysql_install() {
 		return 0
 	fi
 
-	db_get Longivew/mysql-password
+	db_get Longview/mysql-password
 	pass="$RET"
 
 	if [ ! -z "$pass" ]; then
