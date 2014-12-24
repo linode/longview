@@ -64,7 +64,9 @@ sub get {
 			return $dataref;
 	};
 
-	$dataref->{INSTANT}->{'SysInfo.cpu.cores'} = grep {/^processor/} @cpu_info;
+	my $cores = grep {/^processor/} @cpu_info;
+	# There's always at least 1 core
+	$dataref->{INSTANT}->{'SysInfo.cpu.cores'} = $cores || 1;
 	#<<<
 	($dataref->{INSTANT}->{'SysInfo.cpu.type'} =
 		(map { /^(?:model name|Processor)\s+:(.*)$/; $1 || ()} @cpu_info)[0])
