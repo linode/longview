@@ -109,9 +109,11 @@ sub get {
 	my $server_version = $res->header('Server');
 	$dataref->{INSTANT}->{ $namespace . 'version' } = $server_version if ($server_version);
 	foreach my $line ( split( /\n/, $res->content() ) ) {
-		my ( $key, $value ) = ( $line =~ /^([^:]+):\s*(\S*)/ );
-		next unless grep {/$key/} @cared_about;
-		$dataref->{LONGTERM}->{ $namespace . $key } = $value;
+		if($line =~ /^([^:]+):\s*(\S*)/) {
+			my ( $key, $value ) = ( $line =~ /^([^:]+):\s*(\S*)/ );
+			next unless grep {/$key/} @cared_about;
+			$dataref->{LONGTERM}->{ $namespace . $key } = $value;
+		}
 	}
 
 	for my $char (split( '', $dataref->{LONGTERM}->{ $namespace . 'Scoreboard' } ) ) {
