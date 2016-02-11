@@ -26,9 +26,9 @@ Linode Longview also gives you a high-level view of your fleet and lets you sort
 * Longview Pro includes unlimited data retention and up to 1 minute resolution
 * Longview Free includes 12 hours of data retention and 5 minute resolution
 
-### Linode Library on Longview
+### Linode Docs on Longview
 
-The [Linode Library](http://library.linode.com) contains more information on Longview's features at: [Longview](http://library.linode.com/longview)
+The [Linode Guide & Tutorials](https://linode.com/docs) contains more information on Longview's features at: [Longview](https://www.linode.com/docs/platform/longview/)
 
 ## Requirements
 
