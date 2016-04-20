@@ -1,6 +1,6 @@
 Name:     linode-longview
 Version:  1.1
-Release:  3
+Release:  5
 Summary:  Linode Longview Agent
 License:  GPLv2+
 BuildArch: noarch

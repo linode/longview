@@ -1,3 +1,13 @@
+linode-longview (1.1.5) stable; urgency=low
+
+  * fix naming issues in debian installation files
+  * Update README.m
+  * Fix warnings when apache regex doesn't match
+  * Fix for issue #5, cpu core fix in SysInfo.pm
+  * Fix for issue #16, typo in linode-longview.postinst 
+
+ -- James Ottinger <jottinger@linode.com>  Wed, 20 Apr 2016 10:23:35 -0400
+
 linode-longview (1.1.3) stable; urgency=low
 
   * Match the longname of a process more accurately
