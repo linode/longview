@@ -4,7 +4,7 @@ Default:
 Description: Please enter your Longview API Key:
  Please enter your Longview API Key.
 
-Template: Longivew/apache-location
+Template: Longview/apache-location
 Type: string
 Default: 
 Description: Mod_Status URL:
@@ -18,7 +18,7 @@ Description: Autoconfigure Mod_Status:
   the server status page. Would you like to attempt to automatically configure
   mod_status? This will require reloading Apache to enable.
 
-Template: Longivew/nginx-location
+Template: Longview/nginx-location
 Type: string
 Default: 
 Description: Nginx Status URL:
@@ -51,7 +51,7 @@ Description: Overwrite existing Longview MySQL config:
   'debian-sys-maint' user was found, would you like to configure longview to
   use those credentials instead?
 
-Template: Longivew/mysql-password
+Template: Longview/mysql-password
 Type: string
 Default: 
 Description: Longview Mysql user password:

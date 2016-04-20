@@ -40,7 +40,7 @@ _write_option(){
 apache_install() {
 	apache_config_filename=${longview_config_dir}Apache.conf
 
-	db_get Longivew/apache-location
+	db_get Longview/apache-location
 	location="$RET"
 
 	if [ ! -z "$location" ]; then
@@ -103,7 +103,7 @@ END
 nginx_install() {
 	nginx_config_filename=${longview_config_dir}Nginx.conf
 
-	db_get Longivew/nginx-location
+	db_get Longview/nginx-location
 	location="$RET"
 
 	if [ ! -z "$location" ]; then
@@ -166,7 +166,7 @@ mysql_install() {
 	if [ ! -z "$pass" ]; then
 		_write_option $mysql_config_filename username "linode-longview"
 		_write_option $mysql_config_filename password "$pass"
-		db_set Longivew/mysql-password ""
+		db_set Longview/mysql-password ""
 		return 0
 	fi
 }
