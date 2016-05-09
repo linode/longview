@@ -8,7 +8,7 @@ Homepage: https://www.linode.com/longview/
 
 Package: linode-longview
 Architecture: all
-Depends: libjson-perl, libwww-perl, libcrypt-ssleay-perl | liblwp-protocol-https-perl, libio-socket-ssl-perl, libio-socket-inet6-perl, liblog-loglite-perl, libtry-tiny-perl, libdbi-perl,liblinux-distribution-perl, ${misc:Depends}, ${perl:Depends}
+Depends: libjson-perl, libwww-perl, libcrypt-ssleay-perl | liblwp-protocol-https-perl, libio-socket-ssl-perl, libio-socket-inet6-perl, liblog-loglite-perl, libtry-tiny-perl, libdbi-perl, libdbd-mysql-perl, liblinux-distribution-perl, ${misc:Depends}, ${perl:Depends}
 Description: Longview Monitoring Agent
  This agent collects various system wide statistics and
  post them to the Longview collection endpoint.
