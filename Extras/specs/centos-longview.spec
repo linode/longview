@@ -5,7 +5,7 @@ Summary:  Linode Longview Agent
 License:  GPLv2+
 BuildArch: noarch
 
-Requires: perl(Crypt::SSLeay),perl(DBD::mysql)
+Requires: perl(Crypt::SSLeay),perl(DBD::mysql),perl(LWP::Protocol::https)
 Obsoletes: longview
 
 %description
