@@ -34,8 +34,8 @@ http_fetch() {
 		exit 1
 	fi
 }
-[ -e $OLDPWD/Extras/lib/perl5/Linux/Distribution.pm  ] || http_fetch http://cpansearch.perl.org/src/CHORNY/Linux-Distribution-0.21/lib/Linux/Distribution.pm $OLDPWD/Extras/lib/perl5/Linux/Distribution.pm
-[ -e $OLDPWD/Extras/lib/perl5/Try/Tiny.pm ] || http_fetch http://cpansearch.perl.org/src/DOY/Try-Tiny-0.18/lib/Try/Tiny.pm $OLDPWD/Extras/lib/perl5/Try/Tiny.pm
+[ -e $OLDPWD/Extras/lib/perl5/Linux/Distribution.pm  ] || http_fetch http://cpansearch.perl.org/src/CHORNY/Linux-Distribution-0.23/lib/Linux/Distribution.pm $OLDPWD/Extras/lib/perl5/Linux/Distribution.pm
+[ -e $OLDPWD/Extras/lib/perl5/Try/Tiny.pm ] || http_fetch http://cpansearch.perl.org/src/ETHER/Try-Tiny-0.24/lib/Try/Tiny.pm $OLDPWD/Extras/lib/perl5/Try/Tiny.pm
 
 
 %install
