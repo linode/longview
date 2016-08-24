@@ -13,4 +13,5 @@ fi
 
 if [ "$1" = "remove" -o "$1" = "purge" ]; then
 	update-rc.d -f longview remove
+	rm -rf /etc/linode/
 fi
