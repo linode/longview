@@ -82,5 +82,5 @@ if [ $1 -ge 1 ] ; then
 fi
 if [ $1 -eq 0 ]; then
     # package remove, not upgrade
-    rm -rf /etc/linode/
+    rm -rf /etc/linode/longview.*
 fi
