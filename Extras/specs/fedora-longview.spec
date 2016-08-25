@@ -85,7 +85,3 @@ if [ $1 -ge 1 ] ; then
     # Package upgrade, not uninstall
     /bin/systemctl try-restart longview.service >/dev/null 2>&1 || :
 fi
-if [ $1 -eq 0 ]; then
-    # package remove, not upgrade
-    rm -rf /etc/linode/
-fi
