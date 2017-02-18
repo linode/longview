@@ -32,9 +32,10 @@ use strict;
 use warnings;
 use File::Basename;
 use File::Find;
+use JSON;
 
 use Exporter 'import';
-our @EXPORT = qw(get load_modules reload_modules run_order);
+our @EXPORT = qw(get_data);
 
 our $dep_info = {};
 our $module_order = [];
@@ -58,7 +59,7 @@ sub load_modules {
     return if ! -f;
     return unless m/\.pm$/;
     my $module = $File::Find::name;
-    $logger->info("Loading module $module");
+    $logger->debug("Loading module $module");
     require $module;
     (my $rpath = $module)   =~ s|$module_path||;;
     (my $namepace = $rpath) =~ s|\.pm$||;
@@ -76,12 +77,6 @@ sub load_modules {
     s|\.pm$||;
     s|/|::|;
   }
-}
-
-sub reload_modules {
-  $logger->info("Reloading modules");
-  delete $INC{$_} for grep {m|$module_path|} (keys %INC);
-  load_modules();
 }
 
 sub resolve_deps {
@@ -135,6 +130,30 @@ sub print_unresolved {
 sub get {
   my ($key,$dataref) = @_;
   return "Linode::Longview::DataGetter::${key}"->get($dataref);
+}
+
+sub get_data {
+  my $data = {};
+  my $starttime = time();
+  pipe(READ,WRITE);
+  WRITE->autoflush();
+  my $pid = fork();
+  if ($pid == 0) {
+    # Child process
+    close READ;
+    load_modules();
+    get($_,$data,) for @{run_order()};
+    print WRITE encode_json($data);
+    exit(0);
+  } else {
+    # Parent process
+    wait();
+    close WRITE;
+    my $json = <READ>;
+    $data = decode_json($json);
+  }
+  $data->{timestamp} = $starttime;
+  return $data;
 }
 
 1;
