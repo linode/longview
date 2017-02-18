@@ -31,7 +31,6 @@ See the full license at L<http://www.gnu.org/licenses/>.
 use strict;
 use warnings;
 
-use DBI;
 use Linode::Longview::Util qw(:APPLICATIONS slurp_file);
 
 our $DEPENDENCIES = ['Processes.pm'];
@@ -66,47 +65,36 @@ sub get {
 		}
 	}
 
-	my $dbh = DBI->connect_cached( "DBI:mysql:host=localhost;", $creds->{username}, $creds->{password} ) or do {
+	my $cmd = "mysql";
+	my $auth = "-u $creds->{username} -p$creds->{password}";
+	my $args = "--batch --skip-column-names";
+	my $sql = "/opt/linode/longview/Linode/Longview/DataGetter/Applications/MySQL.sql";
+	if ( -e "/var/run/mysqld/mysqld.sock" ) {
+		$args .= " -S /var/run/mysqld/mysqld.sock";
+	} else {
+		$args .= " -h localhost";
+	}
+
+	my $fh;
+	open($fh, "-|", "$cmd $auth $args < $sql") or do {
 		return application_error( $dataref, $namespace,
-			'Unable to connect to the database: ' . $DBI::errstr,
+			'Unable to run: $cmd -u *** -p*** $args: ' . $!,
 			2 );
 	};
-
-	my $sth = $dbh->prepare(q{
-		SHOW /*!50002 GLOBAL */ STATUS  WHERE Variable_name IN (
-			"Com_select", "Com_insert", "Com_update", "Com_delete",
-			"slow_queries",
-			"Bytes_sent", "Bytes_received",
-			"Connections", "Max_used_connections", "Aborted_Connects", "Aborted_Clients",
-			"Qcache_queries_in_cache", "Qcache_hits", "Qcache_inserts", "Qcache_not_cached", "Qcache_lowmem_prunes"
-		)
-	});
-	$sth->execute() or do {
-		return application_error( $dataref, $namespace,
-			'Unable to collect MySQL status information: ' . $sth->errstr,
-			3 );
-	};
-	while ( my ( $name, $value ) = $sth->fetchrow_array() ) {
-		if ( ( $name eq 'Qcache_queries_in_cache' ) || ( $name eq 'Max_used_connections' ) ) {
+	while ( my $line = <$fh> ) {
+		chomp $line;
+		my ( $name, $value ) = split(/\t/, $line);
+		if ( $name eq 'version' ) {
+			$dataref->{INSTANT}->{ $namespace . 'version' } = $value;
+			$dataref->{INSTANT}->{ $namespace . 'status' }  = 0;
+			$dataref->{INSTANT}->{ $namespace . 'status_message' } ||= '';
+		} elsif ( ( $name eq 'Qcache_queries_in_cache' ) || ( $name eq 'Max_used_connections' ) ) {
 			$dataref->{INSTANT}->{ $namespace . $name } = $value;
-		}
-		else {
+		} else {
 			$dataref->{LONGTERM}->{ $namespace . $name } = $value;
 		}
 	}
-
-	$sth = $dbh->prepare(q{
-		SHOW /*!50002 GLOBAL */ VARIABLES LIKE "version"
-	});
-	$sth->execute() or do {
-		return application_error( $dataref, $namespace,
-			'Unable to collect MySQL status information: ' . $sth->errstr,
-			3 );
-	};
-	my ( undef, $version ) = $sth->fetchrow_array();
-	$dataref->{INSTANT}->{ $namespace . 'version' } = $version;
-	$dataref->{INSTANT}->{ $namespace . 'status' }  = 0;
-	$dataref->{INSTANT}->{ $namespace . 'status_message' } ||= '';
+	close($fh);
 	return $dataref;
 }
 
