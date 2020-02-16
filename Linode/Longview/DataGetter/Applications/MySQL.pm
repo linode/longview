@@ -65,8 +65,13 @@ sub get {
 				1 );
 		}
 	}
+	
+	my $hostname = "localhost";
+	if ( exists( $creds->{host} ) ) {
+		$hostname = $creds->{host};
+	}
 
-	my $dbh = DBI->connect_cached( "DBI:mysql:host=localhost;", $creds->{username}, $creds->{password} ) or do {
+	my $dbh = DBI->connect_cached( "DBI:mysql:host=${hostname};", $creds->{username}, $creds->{password} ) or do {
 		return application_error( $dataref, $namespace,
 			'Unable to connect to the database: ' . $DBI::errstr,
 			2 );
