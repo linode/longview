@@ -65,7 +65,7 @@ sub process_info {
 		if ( $line =~ m/^VmRSS:\s+(.*)\s+kB/ )   { $proc{mem}  = $1; last; }
 	}
 
-	$proc{user}  = ( getpwuid( $proc{uid} ) )[0];
+	$proc{user}  = ( getpwuid( $proc{uid} ) )[0] || "";
 
 	# cpu
 	my ( $user_time, $system_time, $start_jiffies )
