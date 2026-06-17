@@ -92,7 +92,7 @@ sub upgradable_pkgs {
 	my @pkg_list = qx(yum check-update);
 	my %pkgs;
 	for my $pkg (@pkg_list) {
-		if ( $pkg =~ m/^(\S+\.\S+)\s+(\S+)\s+\S+$/ ) {
+		if ( $pkg =~ m/^(\S+\.\S+)\s+(\S+)\s+\S+\s*$/ ) {
 			$pkgs{$1} = $2;
 		}
 	}
